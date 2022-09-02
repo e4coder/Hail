@@ -164,6 +164,10 @@ const buildMentions: BuildMentions = async (username_github: string) => {
 
 	await discord_client.login(BOT_TOKEN);
 
+	app.get('/', (req: Request, res: Response) => {
+		res.status(200).json({ status: 'working' });
+	});
+
 	app.post('/pull-requests', (req: Request, res: Response) => {
 		const action = req.body.action;
 		console.log(action);
