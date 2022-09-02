@@ -169,108 +169,113 @@ const buildMentions: BuildMentions = async (username_github: string) => {
 	});
 
 	app.post('/pull-requests', (req: Request, res: Response) => {
-		const action = req.body.action;
-		console.log(action);
+		if (req.headers['x-github-event'] === 'pull_request') {
+			const action = req.body.action;
+			console.log(action);
+		}
 		res.end();
 	});
 
 	app.post('/issues', async (req: Request, res: Response) => {
-		const action = req.body.action;
-		const URL = req.body.issue.html_url;
-		const TITLE = req.body.issue.title;
-		const Number = req.body.issue.number;
-		const Author = req.body.issue.user.login;
-		const AuthorAvatar = req.body.issue.user.avatar_url;
-		const AuthorUrl = req.body.issue.user.url;
-		const channelId = await redis_client.get(CHANNEL.issues_channel);
+		console.log('Incoming Request');
+		if (req.headers['x-github-event'] === 'issue') {
+			const action = req.body.action;
+			const URL = req.body.issue.html_url;
+			const TITLE = req.body.issue.title;
+			const Number = req.body.issue.number;
+			const Author = req.body.issue.user.login;
+			const AuthorAvatar = req.body.issue.user.avatar_url;
+			const AuthorUrl = req.body.issue.user.url;
+			const channelId = await redis_client.get(CHANNEL.issues_channel);
 
-		if (!channelId) return res.end();
+			if (!channelId) return res.end();
 
-		if (action === 'opened') {
-			const exampleEmbed = new EmbedBuilder()
-				// .setColor(0x0099FF)
-				.setColor('Gold')
-				.setTitle(TITLE)
-				.setURL(URL)
-				.setAuthor({ name: Author, iconURL: AuthorAvatar, url: AuthorUrl })
-				.addFields({ name: '\u200B', value: '\u200B' })
-				.addFields({ name: 'New Issue Created by', value: Author, inline: true })
-				.setImage(URL)
-				.setTimestamp()
-				.setFooter({ text: 'HailBot', iconURL: 'https://i.imgur.com/AfFp7pu.png' });
+			if (action === 'opened') {
+				const exampleEmbed = new EmbedBuilder()
+					// .setColor(0x0099FF)
+					.setColor('Gold')
+					.setTitle(TITLE)
+					.setURL(URL)
+					.setAuthor({ name: Author, iconURL: AuthorAvatar, url: AuthorUrl })
+					.addFields({ name: '\u200B', value: '\u200B' })
+					.addFields({ name: 'New Issue Created by', value: Author, inline: true })
+					.setImage(URL)
+					.setTimestamp()
+					.setFooter({ text: 'HailBot', iconURL: 'https://i.imgur.com/AfFp7pu.png' });
 
-			const message = `\`\`\`\n\`\`\`**ISSUE Created**: ${TITLE}\nissue number : ${Number}\n${URL}`;
+				const message = `\`\`\`\n\`\`\`**ISSUE Created**: ${TITLE}\nissue number : ${Number}\n${URL}`;
 
-			// await (discord_client.channels.cache.get(channelId) as TextChannel).send('_ _');
-			(discord_client.channels.cache.get(channelId) as TextChannel)
-				.send({ embeds: [exampleEmbed], content: message }).then(val => {
-					console.log('sent message');
-				}).catch(err => console.error(err));
+				// await (discord_client.channels.cache.get(channelId) as TextChannel).send('_ _');
+				(discord_client.channels.cache.get(channelId) as TextChannel)
+					.send({ embeds: [exampleEmbed], content: message }).then(val => {
+						console.log('sent message');
+					}).catch(err => console.error(err));
 
-		}
+			}
 
-		else if (action === 'closed') {
-			const message = `\`\`\`\n\`\`\`**ISSUE Closed**: ${TITLE}\nissue number : ${Number}\n${URL}`;
+			else if (action === 'closed') {
+				const message = `\`\`\`\n\`\`\`**ISSUE Closed**: ${TITLE}\nissue number : ${Number}\n${URL}`;
 
-			// await (discord_client.channels.cache.get(channelId) as TextChannel).send('_ _');
-			(discord_client.channels.cache.get(channelId) as TextChannel)
-				.send({ content: message }).then(val => {
-					console.log('sent message');
-				}).catch(err => console.error(err));
-		}
+				// await (discord_client.channels.cache.get(channelId) as TextChannel).send('_ _');
+				(discord_client.channels.cache.get(channelId) as TextChannel)
+					.send({ content: message }).then(val => {
+						console.log('sent message');
+					}).catch(err => console.error(err));
+			}
 
-		else if (action === 'assigned') {
-			const assignee = req.body.assignee;
-			const assignee_name = assignee.login;
-			const exampleEmbed = new EmbedBuilder()
-				// .setColor(0x0099FF)
-				.setColor('DarkGreen')
-				.setTitle(TITLE)
-				.setURL(URL)
-				.setAuthor({ name: Author, iconURL: AuthorAvatar, url: AuthorUrl })
-				.addFields({ name: '\u200B', value: '\u200B' })
-				.addFields({ name: 'Issue assigned to', value: assignee_name })
-				.setThumbnail(assignee.avatar_url)
-				.setImage(URL)
-				.setTimestamp()
-				.setFooter({ text: 'HailBot', iconURL: 'https://i.imgur.com/AfFp7pu.png' });
+			else if (action === 'assigned') {
+				const assignee = req.body.assignee;
+				const assignee_name = assignee.login;
+				const exampleEmbed = new EmbedBuilder()
+					// .setColor(0x0099FF)
+					.setColor('DarkGreen')
+					.setTitle(TITLE)
+					.setURL(URL)
+					.setAuthor({ name: Author, iconURL: AuthorAvatar, url: AuthorUrl })
+					.addFields({ name: '\u200B', value: '\u200B' })
+					.addFields({ name: 'Issue assigned to', value: assignee_name })
+					.setThumbnail(assignee.avatar_url)
+					.setImage(URL)
+					.setTimestamp()
+					.setFooter({ text: 'HailBot', iconURL: 'https://i.imgur.com/AfFp7pu.png' });
 
-			const { mentions, members } = await buildMentions(assignee_name);
+				const { mentions, members } = await buildMentions(assignee_name);
 
-			const message = `\`\`\`\n\`\`\`**ISSUE Assigned**: ${TITLE}\nissue has been assigned to **${assignee_name}**\nissue number : ${Number}\n${URL}\n${mentions}`;
+				const message = `\`\`\`\n\`\`\`**ISSUE Assigned**: ${TITLE}\nissue has been assigned to **${assignee_name}**\nissue number : ${Number}\n${URL}\n${mentions}`;
 
-			// await (discord_client.channels.cache.get(channelId) as TextChannel).send('_ _');
-			(discord_client.channels.cache.get(channelId) as TextChannel)
-				.send({ embeds: [exampleEmbed], content: message }).then(val => {
-					console.log('sent message');
-				}).catch(err => console.error(err));
+				// await (discord_client.channels.cache.get(channelId) as TextChannel).send('_ _');
+				(discord_client.channels.cache.get(channelId) as TextChannel)
+					.send({ embeds: [exampleEmbed], content: message }).then(val => {
+						console.log('sent message');
+					}).catch(err => console.error(err));
 
-		}
-		else if (action === 'unassigned') {
-			const assignee = req.body.assignee;
-			const assignee_name = assignee.login;
-			const exampleEmbed = new EmbedBuilder()
-				// .setColor(0x0099FF)
-				.setColor('DarkRed')
-				.setTitle(TITLE)
-				.setURL(URL)
-				.setAuthor({ name: Author, iconURL: AuthorAvatar, url: AuthorUrl })
-				.addFields({ name: '\u200B', value: '\u200B' })
-				.addFields({ name: 'Issue assigned to', value: assignee_name, inline: false })
-				.setThumbnail(assignee.avatar_url)
-				.setTimestamp()
-				.setFooter({ text: 'HailBot', iconURL: 'https://i.imgur.com/AfFp7pu.png' });
+			}
+			else if (action === 'unassigned') {
+				const assignee = req.body.assignee;
+				const assignee_name = assignee.login;
+				const exampleEmbed = new EmbedBuilder()
+					// .setColor(0x0099FF)
+					.setColor('DarkRed')
+					.setTitle(TITLE)
+					.setURL(URL)
+					.setAuthor({ name: Author, iconURL: AuthorAvatar, url: AuthorUrl })
+					.addFields({ name: '\u200B', value: '\u200B' })
+					.addFields({ name: 'Issue assigned to', value: assignee_name, inline: false })
+					.setThumbnail(assignee.avatar_url)
+					.setTimestamp()
+					.setFooter({ text: 'HailBot', iconURL: 'https://i.imgur.com/AfFp7pu.png' });
 
-			const { mentions, members } = await buildMentions(assignee_name);
+				const { mentions, members } = await buildMentions(assignee_name);
 
-			const message = `\`\`\`\n\`\`\`**ISSUE UnAssigned**: ${TITLE}\n**${assignee_name}** has been removed from the issue\n**issue number : ${Number}\n${URL}\n${mentions}`;
+				const message = `\`\`\`\n\`\`\`**ISSUE UnAssigned**: ${TITLE}\n**${assignee_name}** has been removed from the issue\n**issue number : ${Number}\n${URL}\n${mentions}`;
 
-			// await (discord_client.channels.cache.get(channelId) as TextChannel).send('_ _');
-			(discord_client.channels.cache.get(channelId) as TextChannel)
-				.send({ embeds: [exampleEmbed], content: message }).then(val => {
-					console.log('sent message');
-				}).catch(err => console.error(err));
+				// await (discord_client.channels.cache.get(channelId) as TextChannel).send('_ _');
+				(discord_client.channels.cache.get(channelId) as TextChannel)
+					.send({ embeds: [exampleEmbed], content: message }).then(val => {
+						console.log('sent message');
+					}).catch(err => console.error(err));
 
+			}
 		}
 		res.end();
 	});
