@@ -188,7 +188,10 @@ const buildMentions: BuildMentions = async (username_github: string) => {
 			const AuthorUrl = req.body.issue.user.url;
 			const channelId = await redis_client.get(CHANNEL.issues_channel);
 
-			if (!channelId) return res.end();
+			if (!channelId) {
+				console.log('Channel ID not set');
+				return res.end();
+			}
 
 			if (action === 'opened') {
 				const exampleEmbed = new EmbedBuilder()
