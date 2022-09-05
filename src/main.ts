@@ -178,6 +178,7 @@ const buildMentions: BuildMentions = async (username_github: string) => {
 
 	app.post('/issues', async (req: Request, res: Response) => {
 		console.log('Incoming Request');
+		console.log(req.headers['x-github-event']);
 		if (req.headers['x-github-event'] === 'issue') {
 			const action = req.body.action;
 			const URL = req.body.issue.html_url;
@@ -279,6 +280,9 @@ const buildMentions: BuildMentions = async (username_github: string) => {
 					}).catch(err => console.error(err));
 
 			}
+		}
+		else {
+			console.log('wrong event or wrong header');
 		}
 		res.end();
 	});
