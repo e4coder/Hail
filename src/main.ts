@@ -179,7 +179,7 @@ const buildMentions: BuildMentions = async (username_github: string) => {
 	app.post('/issues', async (req: Request, res: Response) => {
 		console.log('Incoming Request');
 		console.log(req.headers['x-github-event']);
-		if (req.headers['x-github-event'] === 'issue') {
+		if (req.headers['x-github-event'] === 'issues') {
 			const action = req.body.action;
 			const URL = req.body.issue.html_url;
 			const TITLE = req.body.issue.title;
