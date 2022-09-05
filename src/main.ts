@@ -74,6 +74,7 @@ const buildMentions: BuildMentions = async (username_github: string) => {
 
 		else if (interaction.commandName === 'set-notify-channel') {
 			const ADMIN_ROLE_ID = await redis_client.get('ADMIN_ROLE');
+			const option = interaction.options.getString('option', true);
 			if (!ADMIN_ROLE_ID) {
 				await interaction.reply('Admin Role has not been set yet');
 			}
@@ -82,7 +83,7 @@ const buildMentions: BuildMentions = async (username_github: string) => {
 
 				if (hasAdminRole) {
 					const channelId = interaction.channelId;
-					await redis_client.set('issues_channel', channelId);
+					await redis_client.set(`${option}_channel`, channelId);
 					await interaction.reply(`This channel is now registered as the ${interaction.options.getString('option')} notification channel`);
 				}
 				else {
