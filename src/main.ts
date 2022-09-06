@@ -187,6 +187,7 @@ const buildMentions: BuildMentions = async (username_github: string) => {
 			if (action === 'submitted') {
 				const { mentions } = await buildMentions(pull_req_owner);
 				const message = `\`\`\`\n\`\`\`**Review Submitted**\nBy: ${reviwer_name}\nAt: ${TITLE}\nPR number : ${NUMBER}\n${URL}\n${mentions}`;
+				console.log(message);
 
 				(discord_client.channels.cache.get(channelId) as TextChannel)
 					.send({ content: message }).then(val => {
