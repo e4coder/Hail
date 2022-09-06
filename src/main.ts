@@ -240,7 +240,8 @@ const buildMentions: BuildMentions = async (username_github: string) => {
 					.setTimestamp()
 					.setFooter({ text: 'HailBot', iconURL: 'https://i.imgur.com/AfFp7pu.png' });
 
-				const message = `\`\`\`\n\`\`\`**Pull request Opened**: ${TITLE}\nPR number : ${NUMBER}\n${URL}`;
+				const { mentions } = await buildMentions(UserName);
+				const message = `\`\`\`\n\`\`\`**Pull request Opened**: ${TITLE}\nPR number : ${NUMBER}\n${URL}\n${mentions}`;
 
 				(discord_client.channels.cache.get(channelId) as TextChannel)
 					.send({ embeds: [exampleEmbed], content: message }).then(val => {
@@ -297,8 +298,8 @@ const buildMentions: BuildMentions = async (username_github: string) => {
 					.setImage(URL)
 					.setTimestamp()
 					.setFooter({ text: 'HailBot', iconURL: 'https://i.imgur.com/AfFp7pu.png' });
-
-				const message = `\`\`\`\n\`\`\`**Pull Request ${MERGED ? 'Merged' : 'Closed'}**: ${TITLE}\nPR number : ${NUMBER}\n${URL}`;
+				const { mentions } = await buildMentions(UserName);
+				const message = `\`\`\`\n\`\`\`**Pull Request ${MERGED ? 'Merged' : 'Closed'}**: ${TITLE}\nPR number : ${NUMBER}\n${URL}\n${mentions}`;
 
 				(discord_client.channels.cache.get(channelId) as TextChannel)
 					.send({ embeds: [exampleEmbed], content: message }).then(val => {
