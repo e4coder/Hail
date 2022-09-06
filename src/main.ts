@@ -233,7 +233,7 @@ const buildMentions: BuildMentions = async (username_github: string) => {
 						.setAuthor({ name: UserName, iconURL: UserAvatar, url: UserUrl })
 						.setThumbnail(reviewer.avatar_url)
 						.addFields({ name: '\u200B', value: '\u200B' })
-						.addFields({ name: 'Review Requested', value: reviewer, inline: true })
+						.addFields({ name: 'Review Requested', value: reviewer.login, inline: true })
 						.setImage(URL)
 						.setTimestamp()
 						.setFooter({ text: 'HailBot', iconURL: 'https://i.imgur.com/AfFp7pu.png' });
