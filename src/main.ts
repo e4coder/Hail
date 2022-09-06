@@ -174,7 +174,6 @@ const buildMentions: BuildMentions = async (username_github: string) => {
 		console.log('Incoming Request');
 		console.log(req.headers['x-github-event']);
 		if (req.headers['x-github-event'] === 'pull_request') {
-			console.log(req.body.pull_request.html_url);
 			const action = req.body.action;
 			const URL = req.body.pull_request.html_url;
 			const TITLE = req.body.pull_request.title;
@@ -187,8 +186,6 @@ const buildMentions: BuildMentions = async (username_github: string) => {
 			const REPO_NAME = req.body.repository.name;
 			const MERGED = req.body.pull_request.merged;
 			const channelId = await redis_client.get(CHANNEL.pr_channel);
-
-			console.log({ action, URL, TITLE, NUMBER, UserName, UserAvatar, UserUrl, BASE_LABEL, HEAD_LABEL, REPO_NAME, MERGED, channelId });
 
 			if (!channelId) {
 				console.log('Channel ID not set');
