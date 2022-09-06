@@ -187,6 +187,8 @@ const buildMentions: BuildMentions = async (username_github: string) => {
 			const MERGED = req.body.pull_request.merged;
 			const channelId = await redis_client.get(CHANNEL.pr_channel);
 
+			console.log({ action, URL, TITLE, NUMBER, UserName, UserAvatar, UserUrl, BASE_LABEL, HEAD_LABEL, REPO_NAME, MERGED, channelId });
+
 			if (!channelId) {
 				console.log('Channel ID not set');
 				return res.end();
