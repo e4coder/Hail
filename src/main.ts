@@ -219,6 +219,32 @@ const buildMentions: BuildMentions = async (username_github: string) => {
 					}).catch(err => console.error(err));
 			}
 
+			else if (action === 'review_requested') {
+				let mentions = '';
+				const reviewer = req.body.pull_request.requested_reviewers[0] ?? { login: '', avatar_url: '' };
+				if (reviewer) {
+					mentions = (await buildMentions(reviewer.login)).mentions;
+				}
+				const exampleEmbed = new EmbedBuilder()
+				// .setColor(0x0099FF)
+					.setColor('White')
+					.setTitle(TITLE)
+					.setURL(URL)
+					.setAuthor({ name: UserName, iconURL: UserAvatar, url: UserUrl })
+					.setThumbnail(reviewer.avatar_url)
+					.addFields({ name: '\u200B', value: '\u200B' })
+					.addFields({ name: 'Review Requested', value: reviewer, inline: true })
+					.setImage(URL)
+					.setTimestamp()
+					.setFooter({ text: 'HailBot', iconURL: 'https://i.imgur.com/AfFp7pu.png' });
+				const message = `\`\`\`\n\`\`\`**Review Requested**: ${TITLE}\nPR number : ${NUMBER}\n${URL}\n${mentions}`;
+
+				(discord_client.channels.cache.get(channelId) as TextChannel)
+					.send({ content: message }).then(val => {
+						console.log('sent message');
+					}).catch(err => console.error(err));
+			}
+
 			else if (action === 'closed') {
 				const exampleEmbed = new EmbedBuilder()
 				// .setColor(0x0099FF)
