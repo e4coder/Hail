@@ -233,14 +233,17 @@ const buildMentions: BuildMentions = async (username_github: string) => {
 						.setAuthor({ name: UserName, iconURL: UserAvatar, url: UserUrl })
 						.setThumbnail(reviewer.avatar_url)
 						.addFields({ name: '\u200B', value: '\u200B' })
-						.addFields({ name: 'Review Requested', value: reviewer.login, inline: true })
+						.addFields(
+							{ name: 'Review Requested', value: reviewer.login, inline: true },
+							{ name: 'Repository', value: REPO_NAME, inline: true },
+						)
 						.setImage(URL)
 						.setTimestamp()
 						.setFooter({ text: 'HailBot', iconURL: 'https://i.imgur.com/AfFp7pu.png' });
 					const message = `\`\`\`\n\`\`\`**Review Requested**: ${TITLE}\nPR number : ${NUMBER}\n${URL}\n${mentions}`;
 
 					(discord_client.channels.cache.get(channelId) as TextChannel)
-						.send({ content: message }).then(val => {
+						.send({ embeds: [exampleEmbed], content: message }).then(val => {
 							console.log('sent message');
 						}).catch(err => console.error(err));
 					res.end();
