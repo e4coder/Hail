@@ -6,6 +6,9 @@ if (process.env.NODE_ENV === 'DEV') config();
 const BOT_TOKEN = process.env.BOT_TOKEN || '';
 const APPLICATION_ID = process.env.APPLICATION_ID || '';
 
+console.log(APPLICATION_ID);
+console.log(BOT_TOKEN);
+
 if (BOT_TOKEN === '') {
 	console.error('INVALID TOKEN');
 	console.log('EXITING WITH CODE 0');
@@ -66,6 +69,37 @@ const commands = [
 			option => option
 				.setName('id')
 				.setDescription('Role ID')
+				.setRequired(true),
+		),
+	new SlashCommandBuilder()
+		.setName('check-in')
+		.setDescription('Use this command to record your check in time'),
+	new SlashCommandBuilder()
+		.setName('check-out')
+		.setDescription('Use this command to record your check out time'),
+	new SlashCommandBuilder()
+		.setName('add-overtime')
+		.setDescription('Adds overtime status for a user')
+		.addUserOption(
+			option => option
+				.setName('username')
+				.setDescription('Discord Username')
+				.setRequired(true),
+		),
+	new SlashCommandBuilder()
+		.setName('forced')
+		.setDescription('Forcefully perform an operation')
+		.addStringOption(
+			option => option
+				.setName('operation')
+				.setDescription('Operation to perform')
+				.setChoices({ name: 'check-in', value: 'check-in' }, { name: 'check-out', value: 'check-out' })
+				.setRequired(true),
+		)
+		.addUserOption(
+			option => option
+				.setName('username')
+				.setDescription('Discord Username')
 				.setRequired(true),
 		),
 ];
