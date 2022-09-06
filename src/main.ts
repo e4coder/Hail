@@ -174,6 +174,7 @@ const buildMentions: BuildMentions = async (username_github: string) => {
 		console.log('Incoming Request');
 		console.log(req.headers['x-github-event']);
 		if (req.headers['x-github-event'] === 'pull_request') {
+			console.log(req.body.pull_request.html_url);
 			const action = req.body.action;
 			const URL = req.body.pull_request.html_url;
 			const TITLE = req.body.pull_request.title;
