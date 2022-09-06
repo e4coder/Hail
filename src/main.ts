@@ -179,6 +179,7 @@ const buildMentions: BuildMentions = async (username_github: string) => {
 			const pull_req_owner = req.body.pull_request.user.login;
 			const TITLE = req.body.pull_request.title;
 			const NUMBER = req.body.pull_request.number;
+			const Url = req.body.review.html_url;
 			const channelId = await redis_client.get(CHANNEL.pr_channel);
 			if (!channelId) {
 				console.log('Channel ID not set');
@@ -186,7 +187,7 @@ const buildMentions: BuildMentions = async (username_github: string) => {
 			}
 			if (action === 'submitted') {
 				const { mentions } = await buildMentions(pull_req_owner);
-				const message = `\`\`\`\n\`\`\`**Review Submitted**\nBy: ${reviwer_name}\nAt: ${TITLE}\nPR number : ${NUMBER}\n${URL}\n${mentions}`;
+				const message = `\`\`\`\n\`\`\`**Review Submitted**\nBy: ${reviwer_name}\nAt: ${TITLE}\nPR number : ${NUMBER}\n${Url}\n${mentions}`;
 				console.log(message);
 
 				(discord_client.channels.cache.get(channelId) as TextChannel)
