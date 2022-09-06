@@ -170,6 +170,33 @@ const buildMentions: BuildMentions = async (username_github: string) => {
 		res.status(200).json({ status: 'working' });
 	});
 
+	app.post('/reviews', async (req: Request, res: Response) => {
+		console.log('Incoming Request');
+		console.log(req.headers['x-github-event']);
+		if (req.headers['x-github-event'] === 'pull_request_review') {
+			const action = req.body.action;
+			const reviwer_name = req.body.review.user.login;
+			const pull_req_owner = req.body.pull_request.user.login;
+			const TITLE = req.body.pull_request.title;
+			const NUMBER = req.body.pull_request.number;
+			const channelId = await redis_client.get(CHANNEL.pr_channel);
+			if (!channelId) {
+				console.log('Channel ID not set');
+				return res.end();
+			}
+			if (action === 'submitted') {
+				const { mentions } = await buildMentions(pull_req_owner);
+				const message = `\`\`\`\n\`\`\`**Review Submitted**\nBy: ${reviwer_name}\nAt: ${TITLE}\nPR number : ${NUMBER}\n${URL}\n${mentions}`;
+
+				(discord_client.channels.cache.get(channelId) as TextChannel)
+					.send({ content: message }).then(val => {
+						console.log('sent message');
+					}).catch(err => console.error(err));
+			}
+		}
+		res.end();
+	});
+
 	app.post('/pull-requests', async (req: Request, res: Response) => {
 		console.log('Incoming Request');
 		console.log(req.headers['x-github-event']);
