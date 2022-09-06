@@ -23,7 +23,7 @@ if (!fs.existsSync('./data.json')) {
 // eslint-disable-next-line no-shadow
 enum CHANNEL {
 	issues_channel = 'issues_channel',
-	pr_channel = 'pr_channel',
+	pr_channel = 'pull-requests_channel',
 }
 
 interface Users {
@@ -69,6 +69,7 @@ const buildMentions: BuildMentions = async (username_github: string) => {
 		if (!interaction.isChatInputCommand()) return;
 
 		if (interaction.commandName === 'ping') {
+			await (await interaction.user.createDM(true)).send('Pong!');
 			await interaction.reply('Pong! ' + interaction.options.getString('name'));
 		}
 
@@ -117,12 +118,12 @@ const buildMentions: BuildMentions = async (username_github: string) => {
 			if (username_github) {
 				try {
 					await redis_client.SREM(username_github, username_discord_id);
-					await redis_client.SADD(username_discord, username_github);
+					await redis_client.SREM(username_discord, username_github);
 					await interaction.reply('Removed');
 				}
 				catch (error) {
-					await redis_client.SREM(username_github, username_discord_id);
-					await redis_client.SREM(username_discord, username_github);
+					await redis_client.SADD(username_github, username_discord_id);
+					await redis_client.SADD(username_discord, username_github);
 					await interaction.reply('Failed');
 				}
 			}
@@ -169,10 +170,81 @@ const buildMentions: BuildMentions = async (username_github: string) => {
 		res.status(200).json({ status: 'working' });
 	});
 
-	app.post('/pull-requests', (req: Request, res: Response) => {
+	app.post('/pull-requests', async (req: Request, res: Response) => {
+		console.log('Incoming Request');
+		console.log(req.headers['x-github-event']);
 		if (req.headers['x-github-event'] === 'pull_request') {
 			const action = req.body.action;
-			console.log(action);
+			const URL = req.body.pull_request.html_url;
+			const TITLE = req.body.pull_request.title;
+			const NUMBER = req.body.pull_request.number;
+			const UserName = req.body.pull_request.user.login;
+			const UserAvatar = req.body.pull_request.user.avatar_url;
+			const UserUrl = req.body.pull_request.user.html_url;
+			const BASE_LABEL = req.body.pull_request.base.label;
+			const HEAD_LABEL = req.body.pull_request.head.label;
+			const REPO_NAME = req.body.repository.name;
+			const MERGED = req.body.pull_request.merged;
+			const channelId = await redis_client.get(CHANNEL.pr_channel);
+
+			if (!channelId) {
+				console.log('Channel ID not set');
+				return res.end();
+			}
+
+			if (action === 'opened') {
+				const exampleEmbed = new EmbedBuilder()
+				// .setColor(0x0099FF)
+					.setColor('DarkVividPink')
+					.setTitle(TITLE)
+					.setURL(URL)
+					.setAuthor({ name: UserName, iconURL: UserAvatar, url: UserUrl })
+					.addFields({ name: '\u200B', value: '\u200B' })
+					.addFields({ name: 'Pull Request opened by', value: UserName, inline: true })
+					.addFields(
+						{ name: '\u200B', value: '\u200B' },
+						{ name: 'Base', value: BASE_LABEL, inline: true },
+						{ name: 'Head', value: HEAD_LABEL, inline: true },
+						{ name: 'Repository', value: REPO_NAME, inline: true },
+					)
+					.setImage(URL)
+					.setTimestamp()
+					.setFooter({ text: 'HailBot', iconURL: 'https://i.imgur.com/AfFp7pu.png' });
+
+				const message = `\`\`\`\n\`\`\`**Pull request Opened**: ${TITLE}\nPR number : ${NUMBER}\n${URL}`;
+
+				(discord_client.channels.cache.get(channelId) as TextChannel)
+					.send({ embeds: [exampleEmbed], content: message }).then(val => {
+						console.log('sent message');
+					}).catch(err => console.error(err));
+			}
+
+			else if (action === 'closed') {
+				const exampleEmbed = new EmbedBuilder()
+				// .setColor(0x0099FF)
+					.setColor('LuminousVividPink')
+					.setTitle(TITLE)
+					.setURL(URL)
+					.setAuthor({ name: UserName, iconURL: UserAvatar, url: UserUrl })
+					.addFields({ name: '\u200B', value: '\u200B' })
+					.addFields({ name: MERGED ? 'pull request merged by' : 'pull request closed', value: MERGED ? req.body.pull_request.merged_by.login : '' })
+					.addFields(
+						{ name: '\u200B', value: '\u200B' },
+						{ name: 'Base', value: BASE_LABEL, inline: true },
+						{ name: 'Head', value: HEAD_LABEL, inline: true },
+						{ name: 'Repository', value: REPO_NAME, inline: true },
+					)
+					.setImage(URL)
+					.setTimestamp()
+					.setFooter({ text: 'HailBot', iconURL: 'https://i.imgur.com/AfFp7pu.png' });
+
+				const message = `\`\`\`\n\`\`\`**Pull Request ${MERGED ? 'Merged' : 'Closed'}**: ${TITLE}\nPR number : ${NUMBER}\n${URL}`;
+
+				(discord_client.channels.cache.get(channelId) as TextChannel)
+					.send({ embeds: [exampleEmbed], content: message }).then(val => {
+						console.log('sent message');
+					}).catch(err => console.error(err));
+			}
 		}
 		res.end();
 	});
